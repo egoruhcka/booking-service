@@ -8,6 +8,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
 builder.Services.AddScoped<ISlotGenerator, SlotGenerator>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>

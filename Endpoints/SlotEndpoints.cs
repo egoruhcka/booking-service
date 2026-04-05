@@ -30,7 +30,7 @@ public static class SlotEndpoints
             var bookedSlotIds = await db.Bookings
                 .AsNoTracking()
                 .Where(b => b.Status == BookingStatus.Active && 
-                           slotIds.Contains(b.SlotId))
+                        slotIds.Contains(b.SlotId))
                 .Select(b => b.SlotId)
                 .ToListAsync();
             

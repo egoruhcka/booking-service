@@ -1,6 +1,7 @@
-namespace RoomBookingService.Services;
+// Services/ITokenService.cs
 using RoomBookingService.Data.Models;
 
+namespace RoomBookingService.Services;
 
 public interface ITokenService
 {

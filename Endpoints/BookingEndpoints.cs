@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RoomBookingService.Data;
 using RoomBookingService.Data.Models;
+using RoomBookingService.Middleware;
 using RoomBookingService.Models.DTOs;
 using RoomBookingService.Services;
 
@@ -16,11 +17,10 @@ public static class BookingEndpoints
             ISlotGenerator slotGenerator,
             HttpContext context) =>
         {
-            var userId = context.User.FindFirst("user_id")?.Value;
-            if (userId != TokenService.RegularUserId.ToString())
+            if (!context.IsUser())
                 return Results.Forbid();
             
-            var userGuid = Guid.Parse(userId);
+            var userGuid = context.GetUserId();
             
             var slot = await slotGenerator.GetSlotByIdAsync(request.SlotId);
             if (slot == null)
@@ -50,12 +50,9 @@ public static class BookingEndpoints
             
             return Results.Ok(new { 
                 booking = new { 
-                    booking.Id, 
-                    booking.SlotId, 
-                    booking.UserId,
+                    booking.Id, booking.SlotId, booking.UserId,
                     Status = booking.Status.ToString().ToLower(),
-                    booking.ConferenceLink,
-                    booking.CreatedAt 
+                    booking.ConferenceLink, booking.CreatedAt 
                 } 
             });
         })
@@ -67,11 +64,10 @@ public static class BookingEndpoints
             ISlotGenerator slotGenerator,
             HttpContext context) =>
         {
-            var userId = context.User.FindFirst("user_id")?.Value;
-            if (userId != TokenService.RegularUserId.ToString())
+            if (!context.IsUser())
                 return Results.Forbid();
             
-            var userGuid = Guid.Parse(userId);
+            var userGuid = context.GetUserId();
             var now = DateTime.UtcNow;
             
             var bookings = await db.Bookings
@@ -99,8 +95,7 @@ public static class BookingEndpoints
             AppDbContext db,
             HttpContext context) =>
         {
-            var userId = context.User.FindFirst("user_id")?.Value;
-            if (userId != TokenService.AdminUserId.ToString())
+            if (!context.IsAdmin())
                 return Results.Forbid();
             
             page = page <= 0 ? 1 : page;
@@ -133,11 +128,10 @@ public static class BookingEndpoints
             AppDbContext db,
             HttpContext context) =>
         {
-            var userId = context.User.FindFirst("user_id")?.Value;
-            if (userId != TokenService.RegularUserId.ToString())
+            if (!context.IsUser())
                 return Results.Forbid();
             
-            var userGuid = Guid.Parse(userId);
+            var userGuid = context.GetUserId();
             
             var booking = await db.Bookings.FindAsync(bookingId);
             if (booking == null)

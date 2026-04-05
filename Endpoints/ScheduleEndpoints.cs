@@ -1,15 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using RoomBookingService.Data;
 using RoomBookingService.Data.Models;
+using RoomBookingService.Middleware;
 using RoomBookingService.Models.DTOs;
-using RoomBookingService.Services;
 using System.Text.RegularExpressions;
 
 namespace RoomBookingService.Endpoints;
 
 public static class ScheduleEndpoints
 {
-        private static bool IsValidTime(string time) => 
+    private static bool IsValidTime(string time) => 
         Regex.IsMatch(time, @"^([01]?[0-9]|2[0-3]):[0-5][0-9]$");
     
     public static void MapScheduleEndpoints(this IEndpointRouteBuilder app)
@@ -20,8 +20,7 @@ public static class ScheduleEndpoints
             AppDbContext db,
             HttpContext context) =>
         {
-            var userId = context.User.FindFirst("user_id")?.Value;
-            if (userId != TokenService.AdminUserId.ToString())
+            if (!context.IsAdmin())
                 return Results.Forbid();
             
             var room = await db.Rooms.FindAsync(roomId);
@@ -57,12 +56,8 @@ public static class ScheduleEndpoints
             
             return Results.Ok(new { 
                 schedule = new { 
-                    schedule.Id, 
-                    schedule.RoomId, 
-                    schedule.DaysOfWeek, 
-                    schedule.StartTime, 
-                    schedule.EndTime,
-                    schedule.CreatedAt 
+                    schedule.Id, schedule.RoomId, schedule.DaysOfWeek, 
+                    schedule.StartTime, schedule.EndTime, schedule.CreatedAt 
                 } 
             });
         })

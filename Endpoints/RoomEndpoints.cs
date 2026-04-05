@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using RoomBookingService.Data;
 using RoomBookingService.Data.Models;
+using RoomBookingService.Middleware;
 using RoomBookingService.Models.DTOs;
-using RoomBookingService.Services;
 
 namespace RoomBookingService.Endpoints;
 
@@ -27,21 +27,11 @@ public static class RoomEndpoints
             AppDbContext db,
             HttpContext context) =>
         {
-            var userIdClaim = context.User.FindFirst("user_id")?.Value;
-            var subClaim = context.User.FindFirst("sub")?.Value;
-            
-            Console.WriteLine($"[AUTH] user_id='{userIdClaim}', sub='{subClaim}'");
-            
-            var adminUuid = TokenService.AdminUserId.ToString();
-            var isAdmin = userIdClaim == adminUuid || subClaim == adminUuid;
-            
-            Console.WriteLine($"[AUTH] IsAdmin={isAdmin}");
-            
-            if (!isAdmin)
+            if (!context.IsAdmin())
                 return Results.Forbid();
             
             if (string.IsNullOrWhiteSpace(request.Name))
-                return Results.BadRequest("Room name is required");
+                return Results.BadRequest(new { error = new { code = "INVALID_REQUEST", message = "Room name is required" } });
             
             var room = new Room
             {
@@ -55,9 +45,7 @@ public static class RoomEndpoints
             db.Rooms.Add(room);
             await db.SaveChangesAsync();
             
-            Console.WriteLine($"[DEBUG] Room created: {room.Id}");
-            
-            return Results.Json(new { 
+            return Results.Ok(new { 
                 room = new { room.Id, room.Name, room.Description, room.Capacity } 
             });
         })
