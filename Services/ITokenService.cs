@@ -1,4 +1,3 @@
-// Services/ITokenService.cs
 using RoomBookingService.Data.Models;
 
 namespace RoomBookingService.Services;

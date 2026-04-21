@@ -1,5 +1,3 @@
-using BCrypt.Net;
-
 namespace RoomBookingService.Services;
 
 public interface IPasswordHasher
